@@ -76,7 +76,7 @@ public class Solution<Key extends Comparable<Key>, Value> {
 
     private Node put(Node x, Key key, Value val) {
         if (x == null){
-            return new Node(key, val, 1); // inilize 
+            return new Node(key, val, 1); 
         }
 
         int cmp = key.compareTo(x.key);
