@@ -9,7 +9,7 @@ public class SeparateChainingHashST<Key, Value> {
      * Initializes an empty symbol table.
      */
     public SeparateChainingHashST() {
-        this(INIT_CAPACITY);
+        this (INIT_CAPACITY);        
     } 
 
     /**
@@ -19,32 +19,34 @@ public class SeparateChainingHashST<Key, Value> {
     public SeparateChainingHashST(int m) {
         this.m = m;
         st = (SequentialSearchST<Key, Value>[]) new SequentialSearchST[m];
-        for (int i = 0; i < m; i++)
+        for (int i = 0;i<m;i++) {
             st[i] = new SequentialSearchST<Key, Value>();
+        }
     } 
 
-    // resize the hash table to have the given number of chains,
-    // rehashing all of the keys
+    //resize the hash table to have the given number of chains,
+    //rehashing all of the keys
     private void resize(int chains) {
         SeparateChainingHashST<Key, Value> temp = new SeparateChainingHashST<Key, Value>(chains);
-        for (int i = 0; i < m; i++) {
-            for (Key key : st[i].keys()) {
-                temp.put(key, st[i].get(key));
-            }
+        for (int i=0;i<m;i++) {
+            for(Key key : st[i].keys()){
+                temp.put(key,st[i].get(key));
+            }    
         }
-        this.m  = temp.m;
-        this.n  = temp.n;
+        this.m = temp.m;
+        this.n = temp.n;
         this.st = temp.st;
     }
 
     // hash function for keys - returns value between 0 and m-1
     private int hashTextbook(Key key) {
-        return (key.hashCode() & 0x7fffffff) % m;
+        return (key.hashCode() & 0x7fffffff)%m;
+
     }
-    private int hash(Key key) {
+    private int hash(Key key){
         int h = key.hashCode();
         h ^= (h >>> 20) ^ (h >>> 12) ^ (h >>> 7) ^ (h >>> 4);
-        return h & (m-1);
+             return h & (m-1);
     }
 
     /**
@@ -53,7 +55,7 @@ public class SeparateChainingHashST<Key, Value> {
      * @return the number of key-value pairs in this symbol table
      */
     public int size() {
-       return n;
+        return n;       
     } 
 
     /**
@@ -63,7 +65,8 @@ public class SeparateChainingHashST<Key, Value> {
      *         {@code false} otherwise
      */
     public boolean isEmpty() {
-        return size()==0;
+        if(size()==0)return true;
+        return false;    
     }
 
     /**
@@ -75,8 +78,8 @@ public class SeparateChainingHashST<Key, Value> {
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
     public boolean contains(Key key) {
-        if (key == null) throw new IllegalArgumentException("argument to contains() is null");
-        return get(key) != null;
+        if(key==null) throw new IllegalArgumentException ("Called contains() with null key");
+        return get(key)!=null;       
     } 
 
     /**
@@ -85,12 +88,12 @@ public class SeparateChainingHashST<Key, Value> {
      * @param  key the key
      * @return the value associated with {@code key} in the symbol table;
      *         {@code null} if no such value
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @throws IllegalArgumentException if {@code key} is {@czzxa<xode null}
      */
     public Value get(Key key) {
-        if (key == null) throw new IllegalArgumentException("argument to get() is null");
+        if(key==null) throw new IllegalArgumentException("Called get() with null key");
         int i = hash(key);
-        return st[i].get(key);    
+        return st[i].get(key);     
     } 
 
     /**
@@ -104,72 +107,46 @@ public class SeparateChainingHashST<Key, Value> {
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
     public void put(Key key, Value val) {
-        if (key == null) throw new IllegalArgumentException("first argument to put() is null");
-        if (val == null) {
+       if(key==null)throw new IllegalArgumentException("Called put() with null key");  
+       if(val==null){
             delete(key);
             return;
-        }
+       }
+       //to double the size
+       if (n>=10*m) resize (2*m);
 
-        // double table size if average length of list >= 10
-        if (n >= 10*m) resize(2*m);
+       int i =  hash(key);
+       if(!st[i].contains(key))n++;
+       st[i].put(key,val);
+    }
 
+    // /**
+    //  * Removes the specified key and its associated value from this symbol table     
+    //  * (if the key is in this symbol table).    
+    //  *
+    //  * @param  key the key
+    //  * @throws IllegalArgumentException if {@code key} is {@code null}
+    //  */
+    public void delete(Key key){
         int i = hash(key);
-        if (!st[i].contains(key)) n++;
-        st[i].put(key, val);
-    } 
-
-    /**
-     * Removes the specified key and its associated value from this symbol table     
-     * (if the key is in this symbol table).    
-     *
-     * @param  key the key
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public void delete(Key key) {
-        if (key == null) throw new IllegalArgumentException("argument to delete() is null");
-
-        int i = hash(key);
-        if (st[i].contains(key)) n--;
+        if(st[i].contains(key)) n--;
         st[i].delete(key);
 
-        // halve table size if average length of list <= 2
-        if (m > INIT_CAPACITY && n <= 2*m) resize(m/2);
+        //to reduce the size if the array is half full
+        if(m>INIT_CAPACITY && n<=2*m)
+            resize (m/2);
     } 
 
     // return keys in symbol table as an Iterable
     public Iterable<Key> keys() {
-        ArrayList<Key> arr = new ArrayList<Key>();
-        for (int i = 0; i < m; i++) {
-            for (Key key : st[i].keys())
-                arr.add(key);
+        Queue<Key> queue = new LinkedList<>();
+        for (int i = 0;i<m;i++) {
+            for (Key key:st[i].keys()) {
+               queue.add(key);  
+            }
+               
         }
-        return arr;
+        return queue;   
     } 
-    // /**
-    //  * Unit tests the {@code SeparateChainingHashST} data type.
-    //  *
-    //  * @param args the command-line arguments
-    //  */
-    public static void main(String[] args) { 
-        SeparateChainingHashST<String, Integer> st = new SeparateChainingHashST<String, Integer>();
-        
-        assert(st.isEmpty()==true);
-
-        st.put("Ongchuk",1);
-        st.put("Kinzang",2);
-        st.put("Apa",3);
-        st.put("Ongchuk",1);
-
-        assert(st.isEmpty()==false);
-        assert(st.size()==3);
-
-        assert(st.contains("Ongchuk"));
-        //assert(st.get("Karma"));
-
-        System.out.print("All test case passed");
-
-
-
-
-    }
+   
 }
